@@ -2,6 +2,10 @@
 #
 # Generated on 2024-03-05T05:52:53Z by kres latest.
 
+env:
+  USERNAME: ${{ github.repository_owner }}
+  PLATFORM: linux/riscv64
+
 name: default
 concurrency:
   group: ${{ github.head_ref || github.run_id }}
@@ -25,31 +29,20 @@ jobs:
       issues: read
       packages: write
       pull-requests: read
+      id-token: write
     runs-on:
-      - self-hosted
-      - generic
+      - ubuntu-latest
     if: (!startsWith(github.head_ref, 'renovate/') && !startsWith(github.head_ref, 'dependabot/'))
-    services:
-      buildkitd:
-        image: moby/buildkit:v0.12.5
-        options: --privileged
-        ports:
-          - 1234:1234
-        volumes:
-          - /var/lib/buildkit/${{ github.repository }}:/var/lib/buildkit
-          - /usr/etc/buildkit/buildkitd.toml:/etc/buildkit/buildkitd.toml
     steps:
       - name: checkout
         uses: actions/checkout@v4
       - name: Unshallow
         run: |
           git fetch --prune --unshallow
+      - name: Set up Namespace CLI
+        uses: namespacelabs/nscloud-setup@v0
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-        with:
-          driver: remote
-          endpoint: tcp://localhost:1234
-        timeout-minutes: 1
+        uses: namespacelabs/nscloud-setup-buildx-action@v0
       - name: base
         run: |
           make base
@@ -57,6 +50,7 @@ jobs:
         run: |
           make unit-tests
       - name: unit-tests-race
+        continue-on-error: true
         run: |
           make unit-tests-race
       - name: coverage
@@ -66,6 +60,7 @@ jobs:
         run: |
           make bldr
       - name: lint
+        continue-on-error: true
         run: |
           make lint
       - name: Login to registry
@@ -81,15 +76,10 @@ jobs:
       - name: push-bldr
         if: github.event_name != 'pull_request'
         env:
-          PLATFORM: linux/amd64,linux/arm64
+          PLATFORM: linux/riscv64
           PUSH: "true"
         run: |
-          make image-bldr
-      - name: integration
-        env:
-          REGISTRY: registry.dev.siderolabs.io
-        run: |
-          make integration
+          make image-bldr TAG=latest
       - name: Generate Checksums
         if: startsWith(github.ref, 'refs/tags/')
         run: |

@@ -6,9 +6,9 @@
 
 ARG TOOLCHAIN
 
-FROM ghcr.io/siderolabs/ca-certificates:v1.6.0 AS image-ca-certificates
+FROM ghcr.io/pl4nty/ca-certificates AS image-ca-certificates
 
-FROM ghcr.io/siderolabs/fhs:v1.6.0 AS image-fhs
+FROM ghcr.io/pl4nty/fhs AS image-fhs
 
 # runs markdownlint
 FROM docker.io/node:21.6.2-alpine3.19 AS lint-markdown
@@ -21,7 +21,7 @@ COPY ./README.md ./README.md
 RUN markdownlint --ignore "CHANGELOG.md" --ignore "**/node_modules/**" --ignore '**/hack/chglog/**' --rules node_modules/sentences-per-line/index.js .
 
 # base toolchain image
-FROM ${TOOLCHAIN} AS toolchain
+FROM --platform=${BUILDPLATFORM} ${TOOLCHAIN} AS toolchain
 RUN apk --update --no-cache add bash curl build-base protoc protobuf-dev
 
 # build tools
@@ -126,8 +126,8 @@ COPY --from=unit-tests-run /src/coverage.txt /coverage-unit-tests.txt
 FROM scratch AS generate
 COPY --from=embed-abbrev-generate /src/internal/version internal/version
 
-# builds bldr-darwin-amd64
-FROM base AS bldr-darwin-amd64-build
+# builds bldr-linux-riscv64
+FROM base AS bldr-linux-riscv64-build
 COPY --from=generate / /
 COPY --from=embed-generate / /
 WORKDIR /src/cmd/bldr
@@ -136,63 +136,15 @@ ARG GO_LDFLAGS
 ARG VERSION_PKG="internal/version"
 ARG SHA
 ARG TAG
-RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/go/pkg GOARCH=amd64 GOOS=darwin go build ${GO_BUILDFLAGS} -ldflags "${GO_LDFLAGS} -X ${VERSION_PKG}.Name=bldr -X ${VERSION_PKG}.SHA=${SHA} -X ${VERSION_PKG}.Tag=${TAG}" -o /bldr-darwin-amd64
+RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/go/pkg GOARCH=riscv64 GOOS=linux go build ${GO_BUILDFLAGS} -ldflags "${GO_LDFLAGS} -X ${VERSION_PKG}.Name=bldr -X ${VERSION_PKG}.SHA=${SHA} -X ${VERSION_PKG}.Tag=${TAG}" -o /bldr-linux-riscv64
 
-# builds bldr-darwin-arm64
-FROM base AS bldr-darwin-arm64-build
-COPY --from=generate / /
-COPY --from=embed-generate / /
-WORKDIR /src/cmd/bldr
-ARG GO_BUILDFLAGS
-ARG GO_LDFLAGS
-ARG VERSION_PKG="internal/version"
-ARG SHA
-ARG TAG
-RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/go/pkg GOARCH=arm64 GOOS=darwin go build ${GO_BUILDFLAGS} -ldflags "${GO_LDFLAGS} -X ${VERSION_PKG}.Name=bldr -X ${VERSION_PKG}.SHA=${SHA} -X ${VERSION_PKG}.Tag=${TAG}" -o /bldr-darwin-arm64
-
-# builds bldr-linux-amd64
-FROM base AS bldr-linux-amd64-build
-COPY --from=generate / /
-COPY --from=embed-generate / /
-WORKDIR /src/cmd/bldr
-ARG GO_BUILDFLAGS
-ARG GO_LDFLAGS
-ARG VERSION_PKG="internal/version"
-ARG SHA
-ARG TAG
-RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/go/pkg GOARCH=amd64 GOOS=linux go build ${GO_BUILDFLAGS} -ldflags "${GO_LDFLAGS} -X ${VERSION_PKG}.Name=bldr -X ${VERSION_PKG}.SHA=${SHA} -X ${VERSION_PKG}.Tag=${TAG}" -o /bldr-linux-amd64
-
-# builds bldr-linux-arm64
-FROM base AS bldr-linux-arm64-build
-COPY --from=generate / /
-COPY --from=embed-generate / /
-WORKDIR /src/cmd/bldr
-ARG GO_BUILDFLAGS
-ARG GO_LDFLAGS
-ARG VERSION_PKG="internal/version"
-ARG SHA
-ARG TAG
-RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/go/pkg GOARCH=arm64 GOOS=linux go build ${GO_BUILDFLAGS} -ldflags "${GO_LDFLAGS} -X ${VERSION_PKG}.Name=bldr -X ${VERSION_PKG}.SHA=${SHA} -X ${VERSION_PKG}.Tag=${TAG}" -o /bldr-linux-arm64
-
-FROM scratch AS bldr-darwin-amd64
-COPY --from=bldr-darwin-amd64-build /bldr-darwin-amd64 /bldr-darwin-amd64
-
-FROM scratch AS bldr-darwin-arm64
-COPY --from=bldr-darwin-arm64-build /bldr-darwin-arm64 /bldr-darwin-arm64
-
-FROM scratch AS bldr-linux-amd64
-COPY --from=bldr-linux-amd64-build /bldr-linux-amd64 /bldr-linux-amd64
-
-FROM scratch AS bldr-linux-arm64
-COPY --from=bldr-linux-arm64-build /bldr-linux-arm64 /bldr-linux-arm64
+FROM scratch AS bldr-linux-riscv64
+COPY --from=bldr-linux-riscv64-build /bldr-linux-riscv64 /bldr-linux-riscv64
 
 FROM bldr-linux-${TARGETARCH} AS bldr
 
 FROM scratch AS bldr-all
-COPY --from=bldr-darwin-amd64 / /
-COPY --from=bldr-darwin-arm64 / /
-COPY --from=bldr-linux-amd64 / /
-COPY --from=bldr-linux-arm64 / /
+COPY --from=bldr-linux-riscv64 / /
 
 FROM scratch AS image-bldr
 ARG TARGETARCH
