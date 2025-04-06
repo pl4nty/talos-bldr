@@ -1,14 +1,10 @@
 # syntax = docker/dockerfile-upstream:1.14.1-labs
 
-# THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
-#
-# Generated on 2025-03-21T11:28:29Z by kres ec5ec04.
-
 ARG TOOLCHAIN
 
-FROM ghcr.io/siderolabs/ca-certificates:v1.10.0-alpha.0-37-g359807b AS image-ca-certificates
+FROM ghcr.io/pl4nty/ca-certificates AS image-ca-certificates
 
-FROM ghcr.io/siderolabs/fhs:v1.10.0-alpha.0-37-g359807b AS image-fhs
+FROM ghcr.io/pl4nty/fhs AS image-fhs
 
 # runs markdownlint
 FROM docker.io/oven/bun:1.2.4-alpine AS lint-markdown
@@ -82,7 +78,6 @@ FROM base AS lint-golangci-lint
 WORKDIR /src
 COPY .golangci.yml .
 ENV GOGC=50
-RUN golangci-lint config verify --config .golangci.yml
 RUN --mount=type=cache,target=/root/.cache/go-build,id=bldr/root/.cache/go-build --mount=type=cache,target=/root/.cache/golangci-lint,id=bldr/root/.cache/golangci-lint,sharing=locked --mount=type=cache,target=/go/pkg,id=bldr/go/pkg golangci-lint run --config .golangci.yml
 
 # runs govulncheck
@@ -119,8 +114,8 @@ COPY --from=unit-tests-run /src/coverage.txt /coverage-unit-tests.txt
 FROM scratch AS generate
 COPY --from=embed-abbrev-generate /src/internal/version internal/version
 
-# builds bldr-darwin-amd64
-FROM base AS bldr-darwin-amd64-build
+# builds bldr-linux-riscv64
+FROM base AS bldr-linux-riscv64-build
 COPY --from=generate / /
 COPY --from=embed-generate / /
 WORKDIR /src/cmd/bldr
@@ -129,63 +124,15 @@ ARG GO_LDFLAGS
 ARG VERSION_PKG="internal/version"
 ARG SHA
 ARG TAG
-RUN --mount=type=cache,target=/root/.cache/go-build,id=bldr/root/.cache/go-build --mount=type=cache,target=/go/pkg,id=bldr/go/pkg GOARCH=amd64 GOOS=darwin go build ${GO_BUILDFLAGS} -ldflags "${GO_LDFLAGS} -X ${VERSION_PKG}.Name=bldr -X ${VERSION_PKG}.SHA=${SHA} -X ${VERSION_PKG}.Tag=${TAG}" -o /bldr-darwin-amd64
+RUN --mount=type=cache,target=/root/.cache/go-build,id=bldr/root/.cache/go-build --mount=type=cache,target=/go/pkg,id=bldr/go/pkg GOARCH=riscv64 GOOS=linux go build ${GO_BUILDFLAGS} -ldflags "${GO_LDFLAGS} -X ${VERSION_PKG}.Name=bldr -X ${VERSION_PKG}.SHA=${SHA} -X ${VERSION_PKG}.Tag=${TAG}" -o /bldr-linux-riscv64
 
-# builds bldr-darwin-arm64
-FROM base AS bldr-darwin-arm64-build
-COPY --from=generate / /
-COPY --from=embed-generate / /
-WORKDIR /src/cmd/bldr
-ARG GO_BUILDFLAGS
-ARG GO_LDFLAGS
-ARG VERSION_PKG="internal/version"
-ARG SHA
-ARG TAG
-RUN --mount=type=cache,target=/root/.cache/go-build,id=bldr/root/.cache/go-build --mount=type=cache,target=/go/pkg,id=bldr/go/pkg GOARCH=arm64 GOOS=darwin go build ${GO_BUILDFLAGS} -ldflags "${GO_LDFLAGS} -X ${VERSION_PKG}.Name=bldr -X ${VERSION_PKG}.SHA=${SHA} -X ${VERSION_PKG}.Tag=${TAG}" -o /bldr-darwin-arm64
-
-# builds bldr-linux-amd64
-FROM base AS bldr-linux-amd64-build
-COPY --from=generate / /
-COPY --from=embed-generate / /
-WORKDIR /src/cmd/bldr
-ARG GO_BUILDFLAGS
-ARG GO_LDFLAGS
-ARG VERSION_PKG="internal/version"
-ARG SHA
-ARG TAG
-RUN --mount=type=cache,target=/root/.cache/go-build,id=bldr/root/.cache/go-build --mount=type=cache,target=/go/pkg,id=bldr/go/pkg GOARCH=amd64 GOOS=linux go build ${GO_BUILDFLAGS} -ldflags "${GO_LDFLAGS} -X ${VERSION_PKG}.Name=bldr -X ${VERSION_PKG}.SHA=${SHA} -X ${VERSION_PKG}.Tag=${TAG}" -o /bldr-linux-amd64
-
-# builds bldr-linux-arm64
-FROM base AS bldr-linux-arm64-build
-COPY --from=generate / /
-COPY --from=embed-generate / /
-WORKDIR /src/cmd/bldr
-ARG GO_BUILDFLAGS
-ARG GO_LDFLAGS
-ARG VERSION_PKG="internal/version"
-ARG SHA
-ARG TAG
-RUN --mount=type=cache,target=/root/.cache/go-build,id=bldr/root/.cache/go-build --mount=type=cache,target=/go/pkg,id=bldr/go/pkg GOARCH=arm64 GOOS=linux go build ${GO_BUILDFLAGS} -ldflags "${GO_LDFLAGS} -X ${VERSION_PKG}.Name=bldr -X ${VERSION_PKG}.SHA=${SHA} -X ${VERSION_PKG}.Tag=${TAG}" -o /bldr-linux-arm64
-
-FROM scratch AS bldr-darwin-amd64
-COPY --from=bldr-darwin-amd64-build /bldr-darwin-amd64 /bldr-darwin-amd64
-
-FROM scratch AS bldr-darwin-arm64
-COPY --from=bldr-darwin-arm64-build /bldr-darwin-arm64 /bldr-darwin-arm64
-
-FROM scratch AS bldr-linux-amd64
-COPY --from=bldr-linux-amd64-build /bldr-linux-amd64 /bldr-linux-amd64
-
-FROM scratch AS bldr-linux-arm64
-COPY --from=bldr-linux-arm64-build /bldr-linux-arm64 /bldr-linux-arm64
+FROM scratch AS bldr-linux-riscv64
+COPY --from=bldr-linux-riscv64-build /bldr-linux-riscv64 /bldr-linux-riscv64
 
 FROM bldr-linux-${TARGETARCH} AS bldr
 
 FROM scratch AS bldr-all
-COPY --from=bldr-darwin-amd64 / /
-COPY --from=bldr-darwin-arm64 / /
-COPY --from=bldr-linux-amd64 / /
-COPY --from=bldr-linux-arm64 / /
+COPY --from=bldr-linux-riscv64 / /
 
 FROM scratch AS image-bldr
 ARG TARGETARCH

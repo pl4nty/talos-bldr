@@ -1,0 +1,7 @@
+version: "1"
+rules:
+  - base: main
+    upstream: siderolabs:main
+    mergeMethod: rebase
+    conflictReviewers:
+      - pl4nty

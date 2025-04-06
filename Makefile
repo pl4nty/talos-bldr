@@ -1,6 +1,6 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
 #
-# Generated on 2025-03-21T11:28:29Z by kres ec5ec04.
+# Generated on 2025-04-05T11:27:26Z by kres d903dae.
 
 # common variables
 
@@ -22,6 +22,7 @@ GRPC_GO_VERSION ?= 1.5.1
 GRPC_GATEWAY_VERSION ?= 2.26.3
 VTPROTOBUF_VERSION ?= 0.6.0
 GOIMPORTS_VERSION ?= 0.31.0
+GOMOCK_VERSION ?= 0.5.0
 DEEPCOPY_VERSION ?= v0.5.6
 GOLANGCILINT_VERSION ?= v1.64.6
 GOFUMPT_VERSION ?= v0.7.0
@@ -66,6 +67,7 @@ COMMON_ARGS += --build-arg=GRPC_GO_VERSION="$(GRPC_GO_VERSION)"
 COMMON_ARGS += --build-arg=GRPC_GATEWAY_VERSION="$(GRPC_GATEWAY_VERSION)"
 COMMON_ARGS += --build-arg=VTPROTOBUF_VERSION="$(VTPROTOBUF_VERSION)"
 COMMON_ARGS += --build-arg=GOIMPORTS_VERSION="$(GOIMPORTS_VERSION)"
+COMMON_ARGS += --build-arg=GOMOCK_VERSION="$(GOMOCK_VERSION)"
 COMMON_ARGS += --build-arg=DEEPCOPY_VERSION="$(DEEPCOPY_VERSION)"
 COMMON_ARGS += --build-arg=GOLANGCILINT_VERSION="$(GOLANGCILINT_VERSION)"
 COMMON_ARGS += --build-arg=GOFUMPT_VERSION="$(GOFUMPT_VERSION)"
@@ -197,36 +199,15 @@ unit-tests:  ## Performs unit tests
 unit-tests-race:  ## Performs unit tests with race detection enabled.
 	@$(MAKE) target-$@
 
-.PHONY: $(ARTIFACTS)/bldr-darwin-amd64
-$(ARTIFACTS)/bldr-darwin-amd64:
-	@$(MAKE) local-bldr-darwin-amd64 DEST=$(ARTIFACTS)
+.PHONY: $(ARTIFACTS)/bldr-linux-riscv64
+$(ARTIFACTS)/bldr-linux-riscv64:
+	@$(MAKE) local-bldr-linux-riscv64 DEST=$(ARTIFACTS)
 
-.PHONY: bldr-darwin-amd64
-bldr-darwin-amd64: $(ARTIFACTS)/bldr-darwin-amd64  ## Builds executable for bldr-darwin-amd64.
-
-.PHONY: $(ARTIFACTS)/bldr-darwin-arm64
-$(ARTIFACTS)/bldr-darwin-arm64:
-	@$(MAKE) local-bldr-darwin-arm64 DEST=$(ARTIFACTS)
-
-.PHONY: bldr-darwin-arm64
-bldr-darwin-arm64: $(ARTIFACTS)/bldr-darwin-arm64  ## Builds executable for bldr-darwin-arm64.
-
-.PHONY: $(ARTIFACTS)/bldr-linux-amd64
-$(ARTIFACTS)/bldr-linux-amd64:
-	@$(MAKE) local-bldr-linux-amd64 DEST=$(ARTIFACTS)
-
-.PHONY: bldr-linux-amd64
-bldr-linux-amd64: $(ARTIFACTS)/bldr-linux-amd64  ## Builds executable for bldr-linux-amd64.
-
-.PHONY: $(ARTIFACTS)/bldr-linux-arm64
-$(ARTIFACTS)/bldr-linux-arm64:
-	@$(MAKE) local-bldr-linux-arm64 DEST=$(ARTIFACTS)
-
-.PHONY: bldr-linux-arm64
-bldr-linux-arm64: $(ARTIFACTS)/bldr-linux-arm64  ## Builds executable for bldr-linux-arm64.
+.PHONY: bldr-linux-riscv64
+bldr-linux-riscv64: $(ARTIFACTS)/bldr-linux-riscv64  ## Builds executable for bldr-linux-riscv64.
 
 .PHONY: bldr
-bldr: bldr-darwin-amd64 bldr-darwin-arm64 bldr-linux-amd64 bldr-linux-arm64  ## Builds executables for bldr.
+bldr: bldr-linux-riscv64  ## Builds executables for bldr.
 
 .PHONY: lint-markdown
 lint-markdown:  ## Runs markdownlint.
