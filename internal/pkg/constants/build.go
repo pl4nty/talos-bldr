@@ -30,4 +30,4 @@ const TemplateExt = ".tmpl"
 
 // StageXBusyboxImage is the image name for busybox from stageX.
 // renovate: datasource=docker versioning=docker depName=siderolabs/stagex/core-busybox
-const StageXBusyboxImage = "ghcr.io/siderolabs/stagex/core-busybox:1.36.1@sha256:c0b551b47d8f1ac2fd5f4712eafddb8717e6e563a47203e02f94f944f64c18b2"
+const StageXBusyboxImage = "ghcr.io/pl4nty/stagex/core-busybox:1.36.1@sha256:553659c54726133733c9df7e4cacaa98c10b38d799d71f35f4eba5de0e87e5de"
