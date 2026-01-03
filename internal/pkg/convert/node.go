@@ -357,7 +357,7 @@ func (node *NodeLLB) stepScripts(root llb.State, i int, step v1alpha2.Step) llb.
 					llb.Scratch(),
 					llb.AsPersistentCacheDir(
 						path.Clean(node.Graph.Options.CacheIDNamespace+"/"+p),
-						llb.CacheMountShared,
+						llb.CacheMountLocked,
 					),
 				)
 			})...)
