@@ -202,20 +202,6 @@ unit-tests:  ## Performs unit tests
 unit-tests-race:  ## Performs unit tests with race detection enabled.
 	@$(MAKE) target-$@
 
-.PHONY: $(ARTIFACTS)/bldr-darwin-amd64
-$(ARTIFACTS)/bldr-darwin-amd64:
-	@$(MAKE) local-bldr-darwin-amd64 DEST=$(ARTIFACTS)
-
-.PHONY: bldr-darwin-amd64
-bldr-darwin-amd64: $(ARTIFACTS)/bldr-darwin-amd64  ## Builds executable for bldr-darwin-amd64.
-
-.PHONY: $(ARTIFACTS)/bldr-darwin-arm64
-$(ARTIFACTS)/bldr-darwin-arm64:
-	@$(MAKE) local-bldr-darwin-arm64 DEST=$(ARTIFACTS)
-
-.PHONY: bldr-darwin-arm64
-bldr-darwin-arm64: $(ARTIFACTS)/bldr-darwin-arm64  ## Builds executable for bldr-darwin-arm64.
-
 .PHONY: $(ARTIFACTS)/bldr-linux-amd64
 $(ARTIFACTS)/bldr-linux-amd64:
 	@$(MAKE) local-bldr-linux-amd64 DEST=$(ARTIFACTS)
@@ -223,15 +209,15 @@ $(ARTIFACTS)/bldr-linux-amd64:
 .PHONY: bldr-linux-amd64
 bldr-linux-amd64: $(ARTIFACTS)/bldr-linux-amd64  ## Builds executable for bldr-linux-amd64.
 
-.PHONY: $(ARTIFACTS)/bldr-linux-arm64
-$(ARTIFACTS)/bldr-linux-arm64:
-	@$(MAKE) local-bldr-linux-arm64 DEST=$(ARTIFACTS)
+.PHONY: $(ARTIFACTS)/bldr-linux-riscv64
+$(ARTIFACTS)/bldr-linux-riscv64:
+	@$(MAKE) local-bldr-linux-riscv64 DEST=$(ARTIFACTS)
 
-.PHONY: bldr-linux-arm64
-bldr-linux-arm64: $(ARTIFACTS)/bldr-linux-arm64  ## Builds executable for bldr-linux-arm64.
+.PHONY: bldr-linux-riscv64
+bldr-linux-riscv64: $(ARTIFACTS)/bldr-linux-riscv64  ## Builds executable for bldr-linux-riscv64.
 
 .PHONY: bldr
-bldr: bldr-darwin-amd64 bldr-darwin-arm64 bldr-linux-amd64 bldr-linux-arm64  ## Builds executables for bldr.
+bldr: bldr-linux-amd64 bldr-linux-riscv64  ## Builds executables for bldr.
 
 .PHONY: lint-markdown
 lint-markdown:  ## Runs markdownlint.

@@ -4,7 +4,7 @@ name: image-bldr
 spec:
   pushLatest: false
   extraEnvironment:
-    PLATFORM: linux/amd64,linux/arm64
+    PLATFORM: linux/amd64,linux/riscv64
   entrypointArgs:
    - frontend
 ---
@@ -14,15 +14,9 @@ spec:
     linux-amd64:
       GOOS: linux
       GOARCH: amd64
-    linux-arm64:
+    linux-riscv64:
       GOOS: linux
-      GOARCH: arm64
-    darwin-amd64:
-      GOOS: darwin
-      GOARCH: amd64
-    darwin-arm64:
-      GOOS: darwin
-      GOARCH: arm64
+      GOARCH: riscv64
 ---
 # TODO: remove after syft upstream PR is merged. See https://github.com/anchore/syft/pull/4029
 kind: golang.GoVulnCheck
@@ -115,7 +109,7 @@ spec:
   customManagers:
     - customType: regex
       managerFilePatterns:
-        - internal/pkg/constants/build.go
+        - internal/pkg/constants/constants.go
       matchStrings:
         - '\/\/\s+renovate: datasource=(?<datasource>.*?)(?:\s+extractVersion=(?<extractVersion>.+?))?(?:\s+versioning=(?<versioning>.+?))?\s+depName=(?<depName>.+?)?\s.*Image\s+=\s+\"docker.io\/alpine:(?<currentValue>.+?)\"'
       versioningTemplate: "{{#if versioning}}{{versioning}}{{else}}semver{{/if}}"

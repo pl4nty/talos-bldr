@@ -1,6 +1,7 @@
-# THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
-#
-# Generated on 2025-12-05T14:08:35Z by kres 571923f.
+env:
+  USERNAME: ${{ github.repository_owner }}
+  PLATFORM: linux/riscv64
+  GO_LDFLAGS: -X github.com/siderolabs/bldr/internal/pkg/constants.StageXBusyboxImage=ghcr.io/pl4nty/stagex/core-busybox:1.36.1@sha256:553659c54726133733c9df7e4cacaa98c10b38d799d71f35f4eba5de0e87e5de
 
 concurrency:
   group: ${{ github.head_ref || github.run_id }}
@@ -25,8 +26,9 @@ jobs:
       issues: read
       packages: write
       pull-requests: read
+      id-token: write
     runs-on:
-      group: generic
+      - ubuntu-latest
     if: (!startsWith(github.head_ref, 'renovate/') && !startsWith(github.head_ref, 'dependabot/'))
     steps:
       - name: gather-system-info
@@ -59,12 +61,11 @@ jobs:
       - name: Unshallow
         run: |
           git fetch --prune --unshallow
+      - name: Set up Namespace CLI
+        uses: namespacelabs/nscloud-setup@v0
       - name: Set up Docker Buildx
         id: setup-buildx
-        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # version: v3.11.1
-        with:
-          driver: remote
-          endpoint: tcp://buildkit-amd64.ci.svc.cluster.local:1234
+        uses: namespacelabs/nscloud-setup-buildx-action@v0
         timeout-minutes: 10
       - name: base
         run: |
@@ -79,13 +80,10 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
           registry: ghcr.io
           username: ${{ github.repository_owner }}
-      - name: image-bldr
-        run: |
-          make image-bldr
       - name: push-bldr
         if: github.event_name != 'pull_request'
         env:
-          PLATFORM: linux/amd64,linux/arm64
+          PLATFORM: linux/amd64,linux/riscv64
           PUSH: "true"
         run: |
           make image-bldr
