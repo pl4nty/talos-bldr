@@ -89,6 +89,17 @@ var (
 		LLBPlatform:  llb.LinuxArm64,
 		PlatformSpec: platforms.MustParse("linux/arm64"),
 	}
+
+	LinuxRiscv64 = Platform{
+		ID:           "linux/riscv64",
+		Arch:         "riscv64",
+		Target:       "riscv64-talos-linux-musl",
+		Build:        "riscv64-linux-musl",
+		Host:         "riscv64-linux-musl",
+		CFlags:       "-O2 -g0",
+		LLBPlatform:  llb.Platform(specs.Platform{OS: "linux", Architecture: "riscv64"}),
+		PlatformSpec: platforms.MustParse("linux/riscv64"),
+	}
 )
 
 // Platforms is mapping of platform ID to Platform.
@@ -98,6 +109,7 @@ func init() {
 	for _, platform := range []Platform{
 		LinuxAmd64,
 		LinuxArm64,
+		LinuxRiscv64,
 	} {
 		Platforms[platform.ID] = platform
 	}
